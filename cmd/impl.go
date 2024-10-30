@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"log/slog"
 
@@ -16,6 +17,7 @@ const (
 	chatTableName = "chat"
 
 	chatColumnUsernames = "usernames"
+	chatColumnId        = "id"
 )
 
 type server struct {
@@ -32,7 +34,7 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 		Values(
 			pq.Array(req.GetUsernames()),
 		).
-		Suffix("RETURNING id")
+		Suffix(fmt.Sprintf("RETURNING %s", chatColumnId))
 
 	query, args, err := insertBuilder.ToSql()
 	if err != nil {
@@ -57,7 +59,7 @@ func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.Cre
 // Delete ...
 func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
 	deleteBuilder := sq.Delete(chatTableName).
-		Where(sq.Eq{"id": req.GetId()}).
+		Where(sq.Eq{chatColumnId: req.GetId()}).
 		PlaceholderFormat(sq.Dollar)
 
 	query, args, err := deleteBuilder.ToSql()
